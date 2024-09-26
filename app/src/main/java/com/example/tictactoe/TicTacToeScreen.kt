@@ -23,10 +23,10 @@ fun TicTacToeScreen(repository: ResultadoRepository) {
     var nombreJugador1 by remember { mutableStateOf("") }
     var nombreJugador2 by remember { mutableStateOf("") }
     var ganador by remember { mutableStateOf("") }
-    var punto by remember { mutableStateOf(0) }
-    var estado by remember { mutableStateOf("") }
-    var turno by remember { mutableStateOf(true) } // true para jugador 1, false para jugador 2
+    var puntajeJugador1 by remember { mutableStateOf(0) }
+    var puntajeJugador2 by remember { mutableStateOf(0) }
     var tablero by remember { mutableStateOf(Array(3) { Array(3) { "" } }) } // Tablero de 3x3
+    var turno by remember { mutableStateOf(true) } // true para jugador 1, false para jugador 2
     val coroutineScope = rememberCoroutineScope()
 
     Column(
@@ -75,13 +75,20 @@ fun TicTacToeScreen(repository: ResultadoRepository) {
                                 if (tablero[row][col].isEmpty() && ganador.isEmpty()) {
                                     tablero[row][col] = if (turno) "X" else "O"
                                     turno = !turno
-                                    ganador = checkWinner(tablero, nombreJugador1, nombreJugador2)
+                                    ganador = checkWinner(tablero, nombreJugador1, nombreJugador2).also { resultado ->
+                                        // Actualizar puntajes según el resultado
+                                        if (resultado == nombreJugador1) {
+                                            puntajeJugador1++
+                                        } else if (resultado == nombreJugador2) {
+                                            puntajeJugador2++
+                                        }
+                                    }
                                 }
                             }
                             .background(Color.LightGray, RoundedCornerShape(8.dp)), // Modificado
                         contentAlignment = Alignment.Center
                     ) {
-                        Text(text = tablero[row][col], style = TextStyle(fontSize = MaterialTheme.typography.headlineMedium.fontSize)) // Modificado
+                        Text(text = tablero[row][col], style = TextStyle(fontSize = MaterialTheme.typography.headlineMedium.fontSize))
                     }
                 }
             }
@@ -89,6 +96,46 @@ fun TicTacToeScreen(repository: ResultadoRepository) {
 
         Spacer(modifier = Modifier.height(16.dp))
 
+        // Mostrar ganador
+        if (ganador.isNotEmpty()) {
+            Text(text = "Ganador: $ganador", style = TextStyle(fontSize = MaterialTheme.typography.headlineSmall.fontSize))
+        }
+
+        // Tabla de puntajes
+        Spacer(modifier = Modifier.height(16.dp))
+        Text("Tabla de Puntajes", style = TextStyle(fontSize = MaterialTheme.typography.titleLarge.fontSize))
+        Spacer(modifier = Modifier.height(8.dp))
+        Row(
+            horizontalArrangement = Arrangement.SpaceBetween,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text(nombreJugador1, modifier = Modifier.weight(1f))
+            Text("$puntajeJugador1", modifier = Modifier.weight(1f), style = TextStyle(fontWeight = androidx.compose.ui.text.font.FontWeight.Bold))
+        }
+        Row(
+            horizontalArrangement = Arrangement.SpaceBetween,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text(nombreJugador2, modifier = Modifier.weight(1f))
+            Text("$puntajeJugador2", modifier = Modifier.weight(1f), style = TextStyle(fontWeight = androidx.compose.ui.text.font.FontWeight.Bold))
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // Botón para reiniciar el juego
+        Button(
+            onClick = {
+                // Reiniciar el estado del juego
+                tablero = Array(3) { Array(3) { "" } }
+                ganador = ""
+                turno = true // Empezar con el jugador 1
+            },
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text("Reiniciar Juego")
+        }
+
+        // Inserción de resultado en la base de datos al finalizar el juego
         Button(
             onClick = {
                 // Inserción de resultado en la base de datos
@@ -98,8 +145,8 @@ fun TicTacToeScreen(repository: ResultadoRepository) {
                         nombre_jugador1 = nombreJugador1,
                         nombre_jugador2 = nombreJugador2,
                         ganador = ganador,
-                        punto = punto,
-                        estado = estado
+                        punto = if (ganador == nombreJugador1) puntajeJugador1 else puntajeJugador2,
+                        estado = "Finalizado"
                     )
                     repository.insertResultado(resultado)
                 }
@@ -107,11 +154,6 @@ fun TicTacToeScreen(repository: ResultadoRepository) {
             modifier = Modifier.fillMaxWidth()
         ) {
             Text("Finalizar Juego")
-        }
-
-        // Mostrar ganador
-        if (ganador.isNotEmpty()) {
-            Text(text = "Ganador: $ganador", style = TextStyle(fontSize = MaterialTheme.typography.headlineSmall.fontSize)) // Modificado
         }
     }
 }
