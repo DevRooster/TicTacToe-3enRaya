@@ -7,20 +7,24 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
+import com.example.tictactoe.TicTacToeScreen
+import com.example.tictactoe.data.AppDatabase
+import com.example.tictactoe.data.ResultadoRepository
 import com.example.tictactoe.ui.theme.TicTacToeTheme
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        val database = AppDatabase.getDatabase(this)
+        val repository = ResultadoRepository(database.resultadoDao())
+
         setContent {
             TicTacToeTheme {
-                // A surface container using the 'background' color from the theme
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    val viewModel = TicTacToeViewModel()
-                    TicTacToeScreen(viewModel = viewModel)
+                    TicTacToeScreen(repository) // Asegúrate de pasar el repository aquí
                 }
             }
         }
