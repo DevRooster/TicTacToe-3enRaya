@@ -26,8 +26,11 @@ fun TicTacToeScreen(repository: ResultadoRepository) {
     var puntajeJugador1 by remember { mutableStateOf(0) }
     var puntajeJugador2 by remember { mutableStateOf(0) }
     var tablero by remember { mutableStateOf(Array(3) { Array(3) { "" } }) } // Tablero de 3x3
-    var turno by remember { mutableStateOf(true) } // true para jugador 1, false para jugador 2
+    var turno by remember { mutableStateOf(true) } // true para jugador 1 (X), false para jugador 2 (O)
     val coroutineScope = rememberCoroutineScope()
+
+    // Variable para mostrar el jugador actual
+    val jugadorActual = if (turno) "X" else "O"
 
     Column(
         modifier = Modifier
@@ -60,6 +63,14 @@ fun TicTacToeScreen(repository: ResultadoRepository) {
 
         Spacer(modifier = Modifier.height(16.dp))
 
+        // Mostrar de quién es el turno
+        Text(
+            text = if (ganador.isEmpty()) "Turno del jugador: $jugadorActual" else "Ganador: $ganador",
+            style = TextStyle(fontSize = MaterialTheme.typography.titleLarge.fontSize)
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
         // Tablero de Tic Tac Toe
         for (row in 0..2) {
             Row(
@@ -73,6 +84,7 @@ fun TicTacToeScreen(repository: ResultadoRepository) {
                             .padding(4.dp)
                             .clickable {
                                 if (tablero[row][col].isEmpty() && ganador.isEmpty()) {
+                                    // Colocar X o O y cambiar el turno
                                     tablero[row][col] = if (turno) "X" else "O"
                                     turno = !turno
                                     ganador = checkWinner(tablero, nombreJugador1, nombreJugador2).also { resultado ->
@@ -85,7 +97,7 @@ fun TicTacToeScreen(repository: ResultadoRepository) {
                                     }
                                 }
                             }
-                            .background(Color.LightGray, RoundedCornerShape(8.dp)), // Modificado
+                            .background(Color.LightGray, RoundedCornerShape(8.dp)),
                         contentAlignment = Alignment.Center
                     ) {
                         Text(text = tablero[row][col], style = TextStyle(fontSize = MaterialTheme.typography.headlineMedium.fontSize))
@@ -96,12 +108,10 @@ fun TicTacToeScreen(repository: ResultadoRepository) {
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Mostrar ganador
-        if (ganador.isNotEmpty()) {
-            Text(text = "Ganador: $ganador", style = TextStyle(fontSize = MaterialTheme.typography.headlineSmall.fontSize))
-        }
-
         // Tabla de puntajes
+        if (ganador.isNotEmpty()) {
+            Text("Ganador: $ganador", style = TextStyle(fontSize = MaterialTheme.typography.headlineSmall.fontSize))
+        }
         Spacer(modifier = Modifier.height(16.dp))
         Text("Tabla de Puntajes", style = TextStyle(fontSize = MaterialTheme.typography.titleLarge.fontSize))
         Spacer(modifier = Modifier.height(8.dp))
